@@ -5,6 +5,8 @@ import {BrowserRouter,Routes,Route} from "react-router-dom"
 import RegisterCoordinator from "./pages/coordinator/RegisterCoordinator"
 import './App.css'
 import LoginCoordinator from './pages/coordinator/LoginCoordinator'
+import CoordinatorDashboard from './pages/coordinator/CoordinatorDashboard'
+import AddEvent from './pages/coordinator/AddEvent'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -15,6 +17,8 @@ function App() {
     <Routes>
       <Route  path='/' element={<RegisterCoordinator/>}/>
       <Route path='/coordinator-login' element={<LoginCoordinator/>} />
+      <Route path='/coordinator/dashboard' element={<CoordinatorDashboard/>} />
+      <Route path='/add-event' element={<AddEvent/>} />
     </Routes>
     </BrowserRouter>
     </>
