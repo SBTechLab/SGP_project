@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 function LoginCoordinator() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const navigate = useNavigate(); // for redirect after login
+  const navigate = useNavigate();
 
   function handleLogin(e) {
     e.preventDefault();
@@ -14,15 +14,20 @@ function LoginCoordinator() {
     fetch("http://localhost:8000/coordinator/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      credentials: "include", // 🔥 VERY IMPORTANT
       body: JSON.stringify(loginData),
     })
       .then((res) => res.json())
       .then((data) => {
         if (data.coordinator) {
           alert("Login successful!");
-          // Save coordinator info if needed, e.g., localStorage
-          localStorage.setItem("coordinator", JSON.stringify(data.coordinator));
-          navigate("/coordinator/dashboard"); // redirect to dashboard
+
+          localStorage.setItem(
+            "coordinator",
+            JSON.stringify(data.coordinator)
+          );
+
+          navigate("/coordinator/dashboard");
         } else {
           alert(data.message);
         }

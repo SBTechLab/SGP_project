@@ -1,5 +1,6 @@
 const Coordinator = require("../models/coordinator");
-
+const Event=require("../models/event");
+const { setUser } = require("../services/userAuth");
 // REGISTER CONTROLLER
 const registerCoordinator = async (req, res) => {
   try {
@@ -25,8 +26,8 @@ const registerCoordinator = async (req, res) => {
       coordinatorId,
       name,
       email,
-      department, // enum: CSE | CE | AIML | IT
-      password,   // plain text for now
+      department, 
+      password,  
     });
 
     await coordinator.save();
@@ -73,6 +74,13 @@ const loginCoordinator = async (req, res) => {
       });
     }
 
+    const token = setUser(coordinator, "Coordinator");
+    res.cookie("uuid", token, {
+      httpOnly: true,
+      sameSite: "strict",
+      maxAge: 24 * 60 * 60 * 1000 // 1 day
+    });
+
     res.status(200).json({
       message: "Login successful",
       coordinator: {
@@ -82,6 +90,7 @@ const loginCoordinator = async (req, res) => {
         department: coordinator.department,
       },
     });
+
   } catch (error) {
     console.error(error);
     res.status(500).json({
@@ -90,7 +99,75 @@ const loginCoordinator = async (req, res) => {
   }
 };
 
+async function createEvent(req, res) {
+  try {
+    const {
+      eventId,
+      title,
+      description,
+      date,
+      startTime,
+      endTime,
+      location,
+      capacity
+    } = req.body;
+
+    // coordinator comes from JWT
+    const coordinatorId = req.user?.id;
+    console.log("Coordinator ID:", coordinatorId);
+
+    if (
+      !eventId || !title || !description || !date ||
+      !startTime || !endTime || !location || !capacity
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required"
+      });
+    }
+
+   
+    const exists = await Event.findOne({ eventId });
+    if (exists) {
+      return res.status(409).json({
+        success: false,
+        message: "Event ID already in use"
+      });
+    }
+
+    const event = await Event.create({
+      eventId: eventId.trim(), // 👈 important
+      title,
+      description,
+      date,
+      startTime,
+      endTime,
+      location,
+      capacity,
+      createdBy: coordinatorId
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Event created successfully",
+      event
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      success: false,
+      message: "Server error"
+    });
+  }
+}
+
+
+
+
+
 module.exports = {
   registerCoordinator,
   loginCoordinator,
+  createEvent
 };
